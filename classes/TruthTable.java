@@ -2,6 +2,12 @@ package classes;
 
 import java.util.ArrayList;
 
+/*
+ * Author		: Kieran Bates
+ * Date			: 10/05/2016
+ * Descripton	:
+ */
+
 public class TruthTable {
 	private String[] fVariables;	// the variables 
 	private String[] fStatements;	// the statements
@@ -15,21 +21,19 @@ public class TruthTable {
 		String[] lContents = aInput.split(" ");
 		String[] lStat = aInput.split(";");
 		ArrayList<String> lStatements = new ArrayList<String>();
-		fVariables = new String[lContents.length];
+		this.fVariables = new String[lContents.length];
 		
 		for (String lTempString : lStat)
 		{
 			lStatements.add(lTempString);
 		} // end foreach
-		
-		fStatements = lStatements.toArray(new String[lStatements.size()]);
-		
 		for (int i = 0; i < lContents.length; i++)
 		{
 			fVariables[i] = lContents[i];
 		} // end for
 		
 		this.fVarSize = fVariables.length;
+		this.fStatements = lStatements.toArray(new String[lStatements.size()]);
 		this.fStateSize = fStatements.length;
 		this.fColumns = calculateColumns();
 		this.fRows = calculateRows();

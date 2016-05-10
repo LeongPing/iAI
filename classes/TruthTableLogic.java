@@ -4,6 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+/*
+ * Author		: Kieran Bates
+ * Date			: 10/05/2016
+ * Description	: Class that handles all of the logic for generating a truth table
+ */
+
 public class TruthTableLogic
 {
 	private TruthTable fTruthTable;
@@ -22,6 +28,7 @@ public class TruthTableLogic
 		fTruthTable.displayStatements();
 	} // end constructor
 	
+	// read the file
 	private void readFile(String aFileName) throws IOException
 	{
 		BufferedReader lIn = new BufferedReader(new FileReader(aFileName));
