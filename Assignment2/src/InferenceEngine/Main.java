@@ -16,24 +16,26 @@ public class Main {
     
     public static void main(String[] args)
 	{
-            readFile(args[1]);
+            readFile(args[1]);    //Accept the second argument as the file name
             
             
             
         }
     
-    public static void readFile(String fileName)
+    public static KnowledgeBase readFile(String fileName)
     {
         try
 		{
 			//create file reading objects
 			FileReader reader = new FileReader(fileName);
 			BufferedReader kBase = new BufferedReader(reader);
-			
+		        KnowledgeBase result = null;
+                        
                         
                         
 			kBase.close();
-			
+                       
+			return result;
 		}
 		catch(FileNotFoundException ex)
 		{
@@ -49,5 +51,7 @@ public class Main {
 			System.out.println("If you're accessing this file over a network, try making a local copy.");
 			System.exit(1);
 		}
+        //this code should be unreachable. This statement is simply to satisfy Eclipse.
+	return null;
     }
 }
