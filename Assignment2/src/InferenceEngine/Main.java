@@ -13,11 +13,18 @@ import java.util.*;
  */
 public class Main {
   
+    public static KnowledgeBase kBase;
+    //public static Method[] lMethods;   //Algorithms to be implemented TT, FC, BC
     
     public static void main(String[] args)
 	{
-            readFile(args[1]);    //Accept the second argument as the file name
+            //args contains:
+		//  [0] - method name
+		//  [1] - filename containing Knowledge Base and Query
             
+            readFile(args[1]);    //Accept the second argument as the file name
+            String method = args[0];
+            //set the current method
             
             
         }
@@ -28,12 +35,12 @@ public class Main {
 		{
 			//create file reading objects
 			FileReader reader = new FileReader(fileName);
-			BufferedReader kBase = new BufferedReader(reader);
+			BufferedReader kBaseReader = new BufferedReader(reader);
 		        KnowledgeBase result = null;
                         
                         
                         
-			kBase.close();
+			kBaseReader.close();
                        
 			return result;
 		}
