@@ -25,7 +25,8 @@ public class TruthTableLogic
 			e.printStackTrace();
 		} // end catch
 		
-		fTruthTable.displayStatements();
+		fTruthTable.displayVariables();
+		// fTruthTable.displayStatements();
 	} // end constructor
 	
 	// read the file

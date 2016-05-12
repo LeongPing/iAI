@@ -5,66 +5,34 @@ import java.util.ArrayList;
 /*
  * Author		: Kieran Bates
  * Date			: 10/05/2016
- * Descripton	:
+ * Description	:
  */
 
 public class TruthTable {
-	private String[] fVariables;	// the variables 
-	private String[] fStatements;	// the statements
-	private int fColumns;			// the amount of columns in the truth table
-	private int fRows;				// the amount of rows in the truth table
-	private int fVarSize;			// the size of fVariables array
-	private int fStateSize;			// the size of fStatements array
+	private ArrayList<Statement> fStatements;	// the statements
+	private int fColumns;						// the amount of columns in the truth table
+	private int fRows;							// the amount of rows in the truth table
+	private int fStateSize;						// the size of fStatements array
 	
 	public TruthTable(String aInput)
 	{
-		String[] lContents = aInput.split(" ");
-		String[] lStat = aInput.split(";");
-		ArrayList<String> lStatements = new ArrayList<String>();
-		this.fVariables = new String[lContents.length];
+		String[] lStatement = aInput.split(";");
+		this.fStatements = new ArrayList<Statement>();
 		
-		for (String lTempString : lStat)
+		for (String lTempString : lStatement)
 		{
-			lStatements.add(lTempString);
+			Statement lTempState = new Statement(lTempString);
+			fStatements.add(lTempState);
 		} // end foreach
-		for (int i = 0; i < lContents.length; i++)
-		{
-			fVariables[i] = lContents[i];
-		} // end for
 		
-		this.fVarSize = fVariables.length;
-		this.fStatements = lStatements.toArray(new String[lStatements.size()]);
-		this.fStateSize = fStatements.length;
+		this.fStateSize = fStatements.size();
 		this.fColumns = calculateColumns();
 		this.fRows = calculateRows();
 	} // end constructor
 	
-	public String[] getVariables()
-	{
-		return this.fVariables;
-	} // end getVariables
-	
-	public String getVariable(int aIndex) throws ArrayIndexOutOfBoundsException
-	{
-		if (aIndex < fVarSize && aIndex > -1)
-			return this.fVariables[aIndex];
-		else
-			throw new ArrayIndexOutOfBoundsException("Error. Index outside of array bounds");
-	} // end getVariable
-	
-	public String[] getStatements()
+	public ArrayList<Statement> getStatement()
 	{
 		return this.fStatements;
-	} // end getStatements
-	
-	public String getStatement(int aIndex) throws ArrayIndexOutOfBoundsException
-	{
-		if (aIndex < fStateSize)
-		{
-			return this.fStatements[aIndex];
-		} // end if
-		else
-			throw new ArrayIndexOutOfBoundsException("Error. Index outside of array bounds");
 	} // end getStatement
 	
 	public int getColumns()
@@ -77,10 +45,10 @@ public class TruthTable {
 		return this.fRows;
 	} // end getRows
 	
-	public int getSize()
+	public int getStatmentsSize()
 	{
-		return this.fVarSize;
-	} // end getSize
+		return this.fStateSize;
+	} // end getStatementsSize
 	
 	public int calculateColumns()
 	{
@@ -101,17 +69,25 @@ public class TruthTable {
 	
 	public void displayVariables()
 	{
-		for (int i = 0; i < fVarSize; i++)
+		int i = 0;
+		
+		for (Statement lTempStatement : fStatements)
 		{
-			System.out.println("Line " + i + ": " + fVariables[i]);
-		} // end for
+			System.out.println("Statement: " + i);
+			lTempStatement.displayVariables();
+			
+			i++;
+		} // end foreach
 	} // end displayVariables
 	
 	public void displayStatements()
 	{
-		for (int i = 0; i < fStateSize; i++)
+		int i = 0;
+		
+		for (Statement lTempStatement : fStatements)
 		{
-			System.out.println("Line " + i + ": " + fStatements[i]);
-		} // end for
+			System.out.println("Line " + i + ": " + lTempStatement.getStatement());
+			i++;
+		} // end foreach
 	} // end displayStatements
 } // end TruthTable
