@@ -3,14 +3,14 @@ package classes;
 import java.util.Scanner;
 
 /*
- * Author	: Kieran Bates
- * Date	: 10/05/2016
- * Description	: 
+ * Author	: Kieran Bates & Leong Ping Lee
+ * Date	: 26/05/2016
+ * Description	: The main file for the assignment
  */
 
 public class Main
 {
-	// menu system for 
+	// menu system for the assignment
 	public static void main(String[] args)
 	{
 		int lOption = 0;
