@@ -25,15 +25,7 @@ public class TruthTableLogic
             e.printStackTrace();
         } // end catch
 
-        fTruthTable.displayVariables();
-        fTruthTable.displaySymbols();
-        /*
-        try
-            fTruthTable.drawTable();
-        catch (IllegalStateException e)
-            e.printStackTrace();
-        */
-        //fTruthTable.displayStatements();
+        fTruthTable.drawTable();
     } // end constructor
 
     // read the file
