@@ -7,10 +7,11 @@ import java.util.Scanner;
  * Date	: 10/05/2016
  * Description	: The main file for the assignment
  */
-
 public class Main
 {
+
     // menu system for the assignment
+
     public static void main(String[] args)
     {
         int lOption = 0;
@@ -20,7 +21,9 @@ public class Main
             // menu options
             System.out.println("----------------------------------------");
             System.out.println("1: Truth Table");
-            System.out.println("2: Exit");
+            System.out.println("2: Forward Chaining");
+            System.out.println("3: Backward Chaining");
+            System.out.println("4: Exit");
             System.out.println("----------------------------------------");
 
             System.out.print("Enter a menu option: ");
@@ -38,11 +41,18 @@ public class Main
 
                     break;
                 case 2:
-                    lSC.close();
+                    System.out.println("Calculating Forward Chaining");
+                    new ForwardChaining(args[0]);
+                    break;
+
+                case 3:
+                    System.out.println("Calculating Backward Chaining");
+                    new BackwardChaining(args[0]);
+                    break;
                 default:
                     lOption = 2;
                     lSC.close();
-                    
+
                     break;
             } // end switch
         } // end do

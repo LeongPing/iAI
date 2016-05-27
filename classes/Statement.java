@@ -1,8 +1,6 @@
 package classes;
 
-import com.sun.xml.internal.ws.util.StringUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /*
  * Author		: Kieran Bates
@@ -42,7 +40,7 @@ public class Statement
         }
         for (String lTempVar : lVariables)
         {
-            if (!(lTempVar.equals("") || lTempVar == null))
+            if (!((lTempVar.equals("") || lTempVar == null)))
                 this.fVariables.add(lTempVar.trim());
         } // end for
         for (String lTempSym : lSymbols)
@@ -112,6 +110,7 @@ public class Statement
     
     private void calculateColumns()
     {
+        //this.fColumns = ((int) Math.pow(2, fVariableSize)) + 1;
         this.fColumns = fSymbolSize + fVariableSize;
     } // end setColumnAmount
 
@@ -123,6 +122,7 @@ public class Statement
 
     private void calculateRows()
     {
+        //this.fRows = fSymbolSize + fVariableSize;
         this.fRows = ((int) Math.pow(2, fVariableSize)) + 1;
     } // end setRowAmount
 
@@ -216,93 +216,422 @@ public class Statement
         } // end for
     } // end displaySymbols
     
-    public void drawTable() throws Exception
+    private void initTruthVariables()
+    {
+        for (int i = 0; i < fVariableSize; i++)
+        {
+            fTruthTable[i][0] = fVariables.get(i);
+        } // end for i
+        
+        int lAlternate = (fRows - 1) / 2;
+        int lAltTimes = 0;
+        String lAltValue = "T";
+
+        for (int i = 0; i < fVariableSize; i++)
+        {
+            for (int j = 1; j < fRows; j++)
+            {
+                fTruthTable[i][j] = lAltValue;
+                lAltTimes++;
+
+                if (lAltTimes == lAlternate)
+                {
+                    lAltTimes = 0;
+
+                    if (lAltValue.equals("T"))
+                        lAltValue = "F";
+                    else
+                        lAltValue = "T";
+                } // end if
+            } // end for j
+            lAlternate = lAlternate / 2;
+        } // end for i
+    } // end initTruthVariables
+    
+    private void hasNot()
+    {
+        int lNotLoc = -1;
+
+        // get the location of the not symbol
+        for (String lSymbol : fSymbols)
+        {
+            if (lSymbol.equals("~"))
+            {
+                lNotLoc = fSymbols.indexOf(lSymbol);
+                break;
+            } // end if
+        } // end foreach
+
+        fTruthTable[lNotLoc + fVariableSize][0] = fSymbols.get(lNotLoc) + fVariables.get(lNotLoc);
+
+        for (int i = 1; i < fRows; i++)
+        {
+            if (fTruthTable[lNotLoc][i].equals("T"))
+                fTruthTable[fVariableSize + lNotLoc][i] = "F";
+            else
+                fTruthTable[fVariableSize + lNotLoc][i] = "T";
+        } // end for i
+    } // end hasNot
+    
+    private void hasAnd()
+    {
+        int lAndLoc = -1;
+        int lSpot = -1;
+        int lVarCol1 = -1;
+        int lVarCol2 = -1;
+        String lVar1 = "";
+        String lVar2 = "";
+        
+        for (String lSymbol : fSymbols)
+        {
+            if (lSymbol.equals("&"))
+            {
+                lAndLoc = fSymbols.indexOf(lSymbol);
+                break;
+            } // end if
+        } // end foreach
+        
+        // set the variables of the two columns to compare
+        if (lAndLoc > 0)
+        {
+            if (fSymbols.get(lAndLoc - 1).equals("~"))
+            {
+                hasNot();
+                lVar1 = "~" + fVariables.get(lAndLoc - 1);
+            }
+            else
+                lVar1 = fVariables.get(lAndLoc - 1);
+            if (lAndLoc + 1 < fSymbolSize)
+            {
+                if (fSymbols.get(lAndLoc + 1).equals("~"))
+                {
+                    hasNot();
+                    lVar2 = "~" + fVariables.get(lAndLoc);
+                }
+            }
+            else
+                lVar2 = fVariables.get(lAndLoc);
+        } // end if
+        else
+        {
+            lVar1 = fVariables.get(lAndLoc);
+            
+            if (lAndLoc + 1 < fSymbolSize)
+            {
+                if (fSymbols.get(lAndLoc + 1).equals("~"))
+                {
+                    hasNot();
+                    lVar2 = "~" + fVariables.get(lAndLoc + 1);
+                }
+                else
+                    lVar2 = fVariables.get(lAndLoc + 1);
+            } // end if
+            else
+                lVar2 = fVariables.get(lAndLoc + 1);
+        } // end else
+        
+        // set the location of the two variables
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (lVar1.equals(fTruthTable[i][0]))
+                lVarCol1 = i;
+            if (lVar2.equals(fTruthTable[i][0]))
+                lVarCol2 = i;
+        } // end for
+        
+        // get the location to add truth values
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (fTruthTable[i][0] == null)
+            {
+                lSpot = i;
+                break;
+            } // end if
+        } // end for
+            
+        fTruthTable[lSpot][0] = fTruthTable[lVarCol1][0] + fSymbols.get(lAndLoc) + fTruthTable[lVarCol2][0];
+        
+        for (int i = 1; i < fRows; i++)
+        {
+            if (fTruthTable[lVarCol1][i].equals("T") && fTruthTable[lVarCol2][i].equals("T"))
+                fTruthTable[lSpot][i] = "T";
+            else
+                fTruthTable[lSpot][i] = "F";
+        } // end for
+    } // end hasAnd
+    
+    private void hasOr()
+    {
+        int lOrLoc = -1;
+        int lSpot = -1;
+        int lVarCol1 = -1;
+        int lVarCol2 = -1;
+        String lVar1 = "";
+        String lVar2 = "";
+        
+        // get the location of the symbol
+        for (String lSymbol : fSymbols)
+        {
+            if (lSymbol.equals("\\/"))
+            {
+                lOrLoc = fSymbols.indexOf(lSymbol);
+                break;
+            } // end if
+        } // end foreach
+        
+        // set the variables of the two columns to compare
+        if (lOrLoc > 0)
+        {
+            if (fSymbols.get(lOrLoc - 1).equals("~"))
+            {
+                hasNot();
+                lVar1 = "~" + fVariables.get(lOrLoc - 1);
+            }
+            else
+                lVar1 = fVariables.get(lOrLoc - 1);
+            if (lOrLoc + 1 < fSymbolSize)
+            {
+                if (fSymbols.get(lOrLoc + 1).equals("~"))
+                {
+                    hasNot();
+                    lVar2 = "~" + fVariables.get(lOrLoc);
+                }
+            }
+            else
+                lVar2 = fVariables.get(lOrLoc);
+        } // end if
+        else
+        {
+            lVar1 = fVariables.get(lOrLoc);
+            
+            if (lOrLoc + 1 < fSymbolSize)
+            {
+                System.out.println("lOrLoc + 1: " + lOrLoc + 1);
+                if (fSymbols.get(lOrLoc + 1).equals("~"))
+                {
+                    hasNot();
+                    System.out.println("lOrLoc + 1: " + lOrLoc + 1);
+                    lVar2 = "~" + fVariables.get(lOrLoc + 1);
+                }
+                else
+                    lVar2 = fVariables.get(lOrLoc + 1);
+            } // end if
+            else
+                lVar2 = fVariables.get(lOrLoc + 1);
+        } // end else
+        
+        // set the location of the two variables
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (lVar1.equals(fTruthTable[i][0]))
+                lVarCol1 = i;
+            if (lVar2.equals(fTruthTable[i][0]))
+                lVarCol2 = i;
+        } // end for
+        
+        // get the location to add truth values
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (fTruthTable[i][0] == null)
+            {
+                lSpot = i;
+                break;
+            } // end if
+        } // end for
+        
+        fTruthTable[lSpot][0] = fTruthTable[lVarCol1][0] + fSymbols.get(lOrLoc) + fTruthTable[lVarCol2][0];
+        
+        for (int i = 1; i < fRows; i++)
+        {
+            if (fTruthTable[lVarCol1][i].equals("T") || fTruthTable[lVarCol2][i].equals("T"))
+                fTruthTable[lSpot][i] = "T";
+            else
+                fTruthTable[lSpot][i] = "F";
+        } // end for
+    } // end hasOr
+    
+    private void hasImplication()
+    {
+        int lImpLoc = -1;
+        int lSpot = -1;
+        int lVarCol1 = -1;
+        int lVarCol2 = -1;
+        String lVar1 = "";
+        String lVar2 = "";
+        String[] lConditions = fStatement.split("(?<=(=>))|(?=(=>))");
+        
+        // get the location of the symbol
+        for (String lSymbol : fSymbols)
+        {
+            if (lSymbol.equals("=>"))
+            {
+                lImpLoc = fSymbols.indexOf(lSymbol);
+                break;
+            } // end if
+        } // end foreach
+        
+        for (int i = 0; i < lConditions.length; i++)
+        {
+            if (lConditions[i].equals("=>"))
+            {
+                lVar1 = lConditions[i - 1];
+                lVar2 = lConditions[i + 1];
+            } // end if
+        } // end for
+        
+        for (int i = 0; i < lConditions.length; i++)
+        {
+            if (lConditions[i].contains("&"))
+                hasAnd();
+            else if (lConditions[i].contains("\\/"))
+                hasOr();
+        } // end for
+        
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (fTruthTable[i][0] == null)
+            {
+                lSpot = i;
+                break;
+            } // end if
+        } // end for
+        
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (fTruthTable[i][0].equals(lVar1))
+                lVarCol1 = i;
+            if (fTruthTable[i][0].equals(lVar2))
+                lVarCol2 = i;
+        } // end for
+        
+        fTruthTable[lSpot][0] = fTruthTable[lVarCol1][0] + fSymbols.get(lImpLoc) + fTruthTable[lVarCol2][0];
+        
+        for (int i = 0; i < fColumns; i++)
+        {
+            if ((fTruthTable[lVarCol1][i].equals("T")) && (fTruthTable[lVarCol2][i].equals("T")))
+                fTruthTable[lSpot][i] = "T";
+            else if ((fTruthTable[lVarCol1][i].equals("T")) && (fTruthTable[lVarCol2][i].equals("F")))
+                fTruthTable[lSpot][i] = "F";
+            else if ((fTruthTable[lVarCol1][i].equals("F")) && (fTruthTable[lVarCol2][i].equals("T")))
+                fTruthTable[lSpot][i] = "T";
+            else if ((fTruthTable[lVarCol1][i].equals("T")) && (fTruthTable[lVarCol2][i].equals("F")))
+                fTruthTable[lSpot][i] = "F";
+        }
+    } // end hasImplication
+    
+    private void hasBiconditional()
+    {
+        int lImpLoc = -1;
+        int lSpot = -1;
+        int lVarCol1 = -1;
+        int lVarCol2 = -1;
+        String lVar1 = "";
+        String lVar2 = "";
+        String[] lConditions = fStatement.split("(?<=(=>))|(?=(=>))");
+        
+        // get the location of the symbol
+        for (String lSymbol : fSymbols)
+        {
+            if (lSymbol.equals("=>"))
+            {
+                lImpLoc = fSymbols.indexOf(lSymbol);
+                break;
+            } // end if
+        } // end foreach
+        
+        for (int i = 0; i < lConditions.length; i++)
+        {
+            if (lConditions[i].equals("<=>"))
+            {
+                lVar1 = lConditions[i - 1];
+                lVar2 = lConditions[i + 1];
+            } // end if
+        } // end for
+        
+        for (int i = 0; i < lConditions.length; i++)
+        {
+            if (lConditions[i].contains("&"))
+                hasAnd();
+            else if (lConditions[i].contains("\\/"))
+                hasOr();
+        } // end for
+        
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (fTruthTable[i][0] == null)
+            {
+                lSpot = i;
+                break;
+            } // end if
+        } // end for
+        
+        for (int i = 0; i < fColumns; i++)
+        {
+            if (fTruthTable[i][0].equals(lVar1))
+                lVarCol1 = i;
+            if (fTruthTable[i][0].equals(lVar2))
+                lVarCol2 = i;
+        } // end for
+        
+        fTruthTable[lSpot][0] = fTruthTable[lVarCol1][0] + fSymbols.get(lImpLoc) + fTruthTable[lVarCol2][0];
+        
+        for (int i = 0; i < fColumns; i++)
+        {
+            if ((fTruthTable[lVarCol1][i].equals("T")) && (fTruthTable[lVarCol2][i].equals("T")))
+                fTruthTable[lSpot][i] = "T";
+            else if ((fTruthTable[lVarCol1][i].equals("T")) && (fTruthTable[lVarCol2][i].equals("F")))
+                fTruthTable[lSpot][i] = "F";
+            else if ((fTruthTable[lVarCol1][i].equals("F")) && (fTruthTable[lVarCol2][i].equals("T")))
+                fTruthTable[lSpot][i] = "F";
+            else if ((fTruthTable[lVarCol1][i].equals("F")) && (fTruthTable[lVarCol2][i].equals("F")))
+                fTruthTable[lSpot][i] = "T";
+        }
+    } // end hasBiconditional
+    
+    private void initTruthSymbols()
+    {
+        for (String lSymbol : fSymbols)
+        {
+            if (lSymbol.equals("~"))
+                hasNot();
+            if (lSymbol.equals("&"))
+                hasAnd();
+            if (lSymbol.equals("\\/"))
+                hasOr();
+            if (lSymbol.equals("=>"))
+                hasImplication();
+            if (lSymbol.equals("<=>"))
+                hasBiconditional();
+        } // end foreach
+    } // end initTruthSymbols
+
+    // generate a truth table for the statement
+    public void generateTable() //throws Exception
+    {
+        calculateRows();
+        calculateColumns();
+        fTruthTable = new String[fColumns][fRows];
+        
+        initTruthVariables();
+        initTruthSymbols();
+    } // end generateTable
+    
+    // print the truth table to the console
+    public void drawTable()
     {
         String lOutput = "";
         
-        try
-        {
-            generateTable();
-        } // end try
-        catch (Exception e)
-        {
-            throw new Exception(e);
-        } // end catch
+        generateTable();
         
         for (int i = 0; i < fRows; i++)
         {
             for (int j = 0; j < fColumns; j++)
             {
-                lOutput += fTruthTable[i][j] + " | ";
+                lOutput += fTruthTable[j][i] + " | ";
             } // end for j
             lOutput += "\n";
         } // end for i
         
         System.out.println(lOutput);
     } // end draw
-    
-    private void setTruthTableVariables()
-    {
-        for (int i = 0; i < fVariableSize; i++)
-        {
-            fTruthTable[i][0] = fVariables.get(i);
-            for (int j = 1; j < fColumns; j++)
-            {
-                if (i == 0)
-                {
-                    if (j < fRows / 2)
-                        fTruthTable[i][j] = "T";
-                    else
-                        fTruthTable[i][j] = "F";
-                } // end if
-                else if (i == 1)
-                {
-                    /*if (j == 0 || j == 1 || j == 4 || j == 5)
-                        fTruthTable[i][j] = "T";
-                    else
-                        fTruthTable[i][j] = "F";*/
-                } // end else if
-                else
-                {
-                    if (j % 2 == 0)
-                        fTruthTable[i][j] = "T";
-                    else
-                        fTruthTable[i][j] = "F";
-                } // end else if
-            } // end for j
-        } // end for i
-    } // end setTruthTableVariables
-
-    // generate a truth table for the statement
-    public void generateTable() throws Exception
-    {
-        calculateRows();
-        calculateColumns();
-        fTruthTable = new String[fRows][fColumns];
-        
-        setTruthTableVariables();
-        
-        for (int i = 0; i < fRows; i++)
-        {
-            for (int j = 0; j < fColumns; j++)
-            {
-                if ((i == 0) && (j < fColumns / 2))
-                {
-                    fTruthTable[i][j] = "T";
-                } // end if
-                else if ((i == 0) && !(j < fColumns / 2))
-                {
-                    fTruthTable[i][j] = "F";
-                } // end else if
-                else if ((i == 2) && ((j == 0) || (j == 1) || (j == 4) || (j == 5)))
-                {
-                    fTruthTable[i][j] ="T";
-                } // end else if
-                else if ((i == 2) && ((j == 2)))
-                {
-                    
-                } // end else if
-            } // end for j
-        } // end for i
-    } // end generateTable
 } // end Statement
